@@ -49,9 +49,9 @@ def run_experiment(**config):
     sampler = Sampler(
         env=env,
         policy=policy,
-        n_parallel=config['meta_batch_size'],
+        n_parallel=config['n_parallel'],
         max_path_length=config['max_path_length'],
-        num_rollouts=config['meta_batch_size'],
+        num_rollouts=config['num_rollouts'],
         adapt_batch_size=config['adapt_batch_size'],  # Comment this out and it won't adapt during rollout
     )
 
@@ -78,7 +78,7 @@ if __name__ == '__main__':
 
                 # Environment
                 'env': [HalfCheetahEnv],
-                'max_path_length': [100],
+                'max_path_length': [1000],
                 'task': [None],
                 'normalize': [True],
                  'n_itr': [50],
@@ -91,22 +91,22 @@ if __name__ == '__main__':
                 'num_cem_iters': [5],
 
                 # Training
-                'num_rollouts': [10],
+                'num_rollouts': [2],
                 'valid_split_ratio': [0.1],
                 'rolling_average_persitency': [0.99],
                 'initial_random_samples': [True],
 
                 # Dynamics Model
-                'meta_batch_size': [16],
+                'meta_batch_size': [20],
                 'hidden_nonlinearity_model': ['relu'],
                 'learning_rate': [1e-3],
                 'inner_learning_rate': [0.01],
-                'hidden_sizes_model': [(256, 256)],
+                'hidden_sizes_model': [(512, 512)],
                 'dynamic_model_epochs': [100],
                 'adapt_batch_size': [16],
 
                 #  Other
-                'n_parallel': [1],
+                'n_parallel': [2],
 
     }
 

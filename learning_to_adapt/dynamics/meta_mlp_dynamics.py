@@ -5,7 +5,6 @@ import numpy as np
 from learning_to_adapt.utils.serializable import Serializable
 from learning_to_adapt.utils import tensor_utils
 from learning_to_adapt.logger import logger
-from learning_to_adapt.utils.utils import remove_scope_from_name
 import time
 
 
@@ -163,13 +162,6 @@ class MetaMLPDynamicsModel(Serializable):
 
                     self.post_update_delta.append(mlp_meta_batch.output_var)
 
-            self.post_update_delta = tf.concat(self.post_update_delta, axis=0)
-
-            # FIXME: The tensor utils compile doesn't work in this function
-            self.meta_f_delta_pred = tensor_utils.compile_function([self.obs_ph, self.act_ph,
-                                                                    self.network_phs_meta_batch],
-                                                                    self.post_update_delta)
-
         self._networks = [mlp]
 
     def fit(self, obs, act, obs_next, epochs=1000, compute_normalization=True,
@@ -324,12 +316,27 @@ class MetaMLPDynamicsModel(Serializable):
     def _predict(self, obs, act):
         if self._adapted_param_values is not None:
             sess = tf.get_default_session()
-            feed_dict = {self.obs_ph: obs, self.act_ph:act}
+            obs, act = self._pad_inputs(obs, act)
+            feed_dict = {self.obs_ph: obs, self.act_ph: act}
             feed_dict.update(self.network_params_feed_dict)
-            delta = sess.run(self.post_update_delta, feed_dict=feed_dict)
+            delta = sess.run(self.post_update_delta[:self._num_adapted_models], feed_dict=feed_dict)
+            delta = np.concatenate(delta, axis=0)
         else:
             delta = self.f_delta_pred(obs, act)
         return delta
+
+    def _pad_inputs(self, obs, act, obs_next=None):
+        if self._num_adapted_models < self.meta_batch_size:
+            pad = int(obs.shape[0] / self._num_adapted_models * (self.meta_batch_size - self._num_adapted_models))
+            obs = np.concatenate([obs, np.zeros((pad,) + obs.shape[1:])], axis=0)
+            act = np.concatenate([act, np.zeros((pad,) + act.shape[1:])], axis=0)
+            if obs_next is not None:
+                obs_next = np.concatenate([obs_next, np.zeros((pad,) + obs_next.shape[1:])], axis=0)
+
+        if obs_next is not None:
+            return obs, act, obs_next
+        else:
+            return obs, act
 
     def adapt(self, obs, act, obs_next):
         """
@@ -338,11 +345,13 @@ class MetaMLPDynamicsModel(Serializable):
         :param obs_next: list of len meta_batch_size
         :return:
         """
-        assert len(obs) == len(act) == len(obs_next) == self.meta_batch_size
+        self._num_adapted_models = len(obs)
+        assert len(obs) == len(act) == len(obs_next)
         obs = np.concatenate([np.concatenate([ob, np.zeros_like(ob)], axis=0) for ob in obs], axis=0)
         act = np.concatenate([np.concatenate([a, np.zeros_like(a)], axis=0) for a in act], axis=0)
         obs_next = np.concatenate([np.concatenate([ob, np.zeros_like(ob)], axis=0) for ob in obs_next], axis=0)
 
+        obs, act, obs_next = self._pad_inputs(obs, act, obs_next)
         assert obs.shape[0] == act.shape[0] == obs_next.shape[0]
         assert obs.ndim == 2 and obs.shape[1] == self.obs_space_dims
         assert act.ndim == 2 and act.shape[1] == self.action_space_dims
@@ -358,7 +367,7 @@ class MetaMLPDynamicsModel(Serializable):
         self._prev_params = [nn.get_param_values() for nn in self._networks]
 
         sess = tf.get_default_session()
-        self._adapted_param_values = sess.run(self._adapted_params,
+        self._adapted_param_values = sess.run(self._adapted_params[:self._num_adapted_models],
                                               feed_dict={self.obs_ph: obs, self.act_ph: act, self.delta_ph: delta})
 
     def switch_to_pre_adapt(self):
@@ -475,10 +484,9 @@ class MetaMLPDynamicsModel(Serializable):
             into the lightweight policy graph
         """
         return dict(list((self.network_phs_meta_batch[i][key], self._adapted_param_values[i][key])
-                         for key in self._adapted_param_values[0].keys() for i in range(self.meta_batch_size)))
+                         for key in self._adapted_param_values[0].keys() for i in range(self._num_adapted_models)))
 
     def __getstate__(self):
-        # state = LayersPowered.__getstate__(self)
         state = dict()
         state['init_args'] = Serializable.__getstate__(self)
         state['normalization'] = self.normalization
@@ -486,7 +494,6 @@ class MetaMLPDynamicsModel(Serializable):
         return state
 
     def __setstate__(self, state):
-        # LayersPowered.__setstate__(self, state)
         Serializable.__setstate__(self, state['init_args'])
         self.normalization = state['normalization']
         for i in range(len(self._networks)):
