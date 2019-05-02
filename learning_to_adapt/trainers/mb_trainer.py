@@ -109,7 +109,7 @@ class Trainer(object):
                 logger.log("Saved")
 
                 logger.dumpkvs()
-                if itr == 0:
+                if itr == 1:
                     sess.graph.finalize()
 
         logger.log("Training finished")

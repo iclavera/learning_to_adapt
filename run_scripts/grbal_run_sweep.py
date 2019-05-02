@@ -4,10 +4,10 @@ from learning_to_adapt.policies.mpc_controller import MPCController
 from learning_to_adapt.samplers.sampler import Sampler
 from learning_to_adapt.logger import logger
 from learning_to_adapt.envs.normalized_env import normalize
-from experiment_utils.run_sweep import run_sweep
 from learning_to_adapt.utils.utils import ClassEncoder
 from learning_to_adapt.samplers.model_sample_processor import ModelSampleProcessor
-from learning_to_adapt.envs.half_cheetah_env import HalfCheetahEnv
+from learning_to_adapt.envs import *
+from experiment_utils.run_sweep import run_sweep
 import json
 import os
 
@@ -32,7 +32,7 @@ def run_experiment(**config):
         valid_split_ratio=config['valid_split_ratio'],
         rolling_average_persitency=config['rolling_average_persitency'],
         hidden_nonlinearity=config['hidden_nonlinearity_model'],
-        batch_size=config['batch_size_model'],
+        batch_size=config['adapt_batch_size'],
     )
 
     policy = MPCController(
@@ -49,9 +49,10 @@ def run_experiment(**config):
     sampler = Sampler(
         env=env,
         policy=policy,
-        num_rollouts=config['num_rollouts'],
+        n_parallel=config['meta_batch_size'],
         max_path_length=config['max_path_length'],
-        n_parallel=config['n_parallel'],
+        num_rollouts=config['meta_batch_size'],
+        adapt_batch_size=config['adapt_batch_size'],  # Comment this out and it won't adapt during rollout
     )
 
     sample_processor = ModelSampleProcessor(recurrent=True)
@@ -96,13 +97,13 @@ if __name__ == '__main__':
                 'initial_random_samples': [True],
 
                 # Dynamics Model
-                'meta_batch_size': [5],
+                'meta_batch_size': [16],
                 'hidden_nonlinearity_model': ['relu'],
                 'learning_rate': [1e-3],
-                'inner_learning_rate': [0.1],
+                'inner_learning_rate': [0.01],
                 'hidden_sizes_model': [(256, 256)],
                 'dynamic_model_epochs': [100],
-                'batch_size_model': [16],
+                'adapt_batch_size': [16],
 
                 #  Other
                 'n_parallel': [1],

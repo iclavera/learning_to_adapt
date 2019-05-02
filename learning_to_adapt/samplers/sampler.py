@@ -2,7 +2,6 @@ from learning_to_adapt.samplers.base import BaseSampler
 from learning_to_adapt.samplers.vectorized_env_executor import ParallelEnvExecutor, IterativeEnvExecutor
 from learning_to_adapt.logger import logger
 from learning_to_adapt.utils import utils
-
 from pyprind import ProgBar
 import numpy as np
 import time
@@ -29,7 +28,7 @@ class Sampler(BaseSampler):
             num_rollouts,
             max_path_length,
             n_parallel=1,
-            vae=None,
+            adapt_batch_size=None,
 
     ):
         super(Sampler, self).__init__(env, policy, n_parallel, max_path_length)
@@ -37,7 +36,7 @@ class Sampler(BaseSampler):
         self.total_samples = num_rollouts * max_path_length
         self.n_parallel = n_parallel
         self.total_timesteps_sampled = 0
-        self.vae = vae
+        self.adapt_batch_size = adapt_batch_size
 
         # setup vectorized environment
 
@@ -59,14 +58,15 @@ class Sampler(BaseSampler):
             random (boolean): whether the actions are random
 
         Returns:
-            (dict) : A dict of paths of size [meta_batch_size] x (batch_size) x [5] x (max_path_length)
+            (list): A list of dicts with the samples
         """
 
         # initial setup / preparation
         paths = []
 
         n_samples = 0
-        running_paths = [_get_empty_running_paths_dict() for _ in range(self.vec_env.num_envs)]
+        num_envs = self.vec_env.num_envs
+        running_paths = [_get_empty_running_paths_dict() for _ in range(num_envs)]
 
         pbar = ProgBar(self.total_samples)
         policy_time, env_time = 0, 0
@@ -81,13 +81,20 @@ class Sampler(BaseSampler):
 
             # execute policy
             t = time.time()
-            if self.vae is not None:
-                obses = np.array(obses)
-                obses = self.vae.encode(obses)
             if random:
-                actions = np.stack([self.env.action_space.sample() for _ in range(self.vec_env.num_envs)], axis=0)
+                actions = np.stack([self.env.action_space.sample() for _ in range(num_envs)], axis=0)
                 agent_infos = {}
             else:
+                a_bs = self.adapt_batch_size
+                if a_bs is not None and len(running_paths[0]['observations']) > a_bs + 1:
+                    adapt_obs = [np.stack(running_paths[idx]['observations'][-a_bs - 1:-1])
+                                 for idx in range(num_envs)]
+                    adapt_act = [np.stack(running_paths[idx]['actions'][-a_bs-1:-1])
+                                 for idx in range(num_envs)]
+                    adapt_next_obs = [np.stack(running_paths[idx]['observations'][-a_bs:])
+                                      for idx in range(num_envs)]
+                    policy.dynamics_model.switch_to_pre_adapt()
+                    policy.dynamics_model.adapt(adapt_obs, adapt_act, adapt_next_obs)
                 actions, agent_infos = policy.get_actions(obses)
             policy_time += time.time() - t
 

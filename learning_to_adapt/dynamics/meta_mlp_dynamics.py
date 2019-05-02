@@ -65,7 +65,6 @@ class MetaMLPDynamicsModel(Serializable):
         hidden_nonlinearity = self._activations[hidden_nonlinearity]
         output_nonlinearity = self._activations[output_nonlinearity]
 
-
         """ ------------------ Pre-Update Graph + Adaptation ----------------------- """
         with tf.variable_scope(name):
             # Placeholders
@@ -166,6 +165,7 @@ class MetaMLPDynamicsModel(Serializable):
 
             self.post_update_delta = tf.concat(self.post_update_delta, axis=0)
 
+            # FIXME: The tensor utils compile doesn't work in this function
             self.meta_f_delta_pred = tensor_utils.compile_function([self.obs_ph, self.act_ph,
                                                                     self.network_phs_meta_batch],
                                                                     self.post_update_delta)
@@ -323,7 +323,10 @@ class MetaMLPDynamicsModel(Serializable):
 
     def _predict(self, obs, act):
         if self._adapted_param_values is not None:
-            delta = self.meta_f_delta_pred(obs, act, self._adapted_param_values)
+            sess = tf.get_default_session()
+            feed_dict = {self.obs_ph: obs, self.act_ph:act}
+            feed_dict.update(self.network_params_feed_dict)
+            delta = sess.run(self.post_update_delta, feed_dict=feed_dict)
         else:
             delta = self.f_delta_pred(obs, act)
         return delta
@@ -336,9 +339,9 @@ class MetaMLPDynamicsModel(Serializable):
         :return:
         """
         assert len(obs) == len(act) == len(obs_next) == self.meta_batch_size
-        obs = np.concatenate([np.concatenate([ob, np.zeros_like(ob)]) for ob in obs])
-        act = np.concatenate([np.concatenate([a, np.zeros_like(a)]) for a in act])
-        obs_next = np.concatenate([np.concatenate([ob, np.zeros_like(ob)]) for ob in obs_next])
+        obs = np.concatenate([np.concatenate([ob, np.zeros_like(ob)], axis=0) for ob in obs], axis=0)
+        act = np.concatenate([np.concatenate([a, np.zeros_like(a)], axis=0) for a in act], axis=0)
+        obs_next = np.concatenate([np.concatenate([ob, np.zeros_like(ob)], axis=0) for ob in obs_next], axis=0)
 
         assert obs.shape[0] == act.shape[0] == obs_next.shape[0]
         assert obs.ndim == 2 and obs.shape[1] == self.obs_space_dims
@@ -355,15 +358,14 @@ class MetaMLPDynamicsModel(Serializable):
         self._prev_params = [nn.get_param_values() for nn in self._networks]
 
         sess = tf.get_default_session()
-        self._adapted_param_values = sess.run(self._adapted_params, feed_dict={self.obs_ph: obs,
-                                              self.act_ph: act,
-                                              self.delta_ph: delta})
+        self._adapted_param_values = sess.run(self._adapted_params,
+                                              feed_dict={self.obs_ph: obs, self.act_ph: act, self.delta_ph: delta})
 
     def switch_to_pre_adapt(self):
-        assert self._prev_params is not None
-        [nn.set_params(params) for nn, params in zip(self._networks, self._prev_params)]
-        self._prev_params = None
-        self._adapted_param_values = None
+        if self._prev_params is not None:
+            [nn.set_params(params) for nn, params in zip(self._networks, self._prev_params)]
+            self._prev_params = None
+            self._adapted_param_values = None
 
     def _reinit_model(self):
         sess = tf.get_default_session()
@@ -463,9 +465,17 @@ class MetaMLPDynamicsModel(Serializable):
     def _create_placeholders_for_vars(self, vars):
         placeholders = OrderedDict()
         for key, var in vars.items():
-            var_name = key + '_ph'
-            placeholders[var_name] = tf.placeholder(tf.float32, shape=var.shape, name=var_name)
+            placeholders[key] = tf.placeholder(tf.float32, shape=var.shape, name=key + '_ph')
         return OrderedDict(placeholders)
+
+    @property
+    def network_params_feed_dict(self):
+        """
+            returns fully prepared feed dict for feeding the currently saved policy parameter values
+            into the lightweight policy graph
+        """
+        return dict(list((self.network_phs_meta_batch[i][key], self._adapted_param_values[i][key])
+                         for key in self._adapted_param_values[0].keys() for i in range(self.meta_batch_size)))
 
     def __getstate__(self):
         # state = LayersPowered.__getstate__(self)
