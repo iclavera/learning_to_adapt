@@ -256,8 +256,8 @@ class MetaMLPDynamicsModel(Serializable):
             epoch_times.append(time.time() - t0)
 
             if verbose:
-                logger.log("Training DynamicsModel - finished epoch %i --"
-                           "train loss: %.4f  valid loss: %.4f  valid_loss_mov_avg: %.4f  epoch time: %.2f"
+                logger.log("Training DynamicsModel - finished epoch %i - "
+                           "train loss: %.4f   valid loss: %.4f   valid_loss_mov_avg: %.4f   epoch time: %.2f"
                            % (epoch, np.mean(post_batch_losses), valid_loss, valid_loss_rolling_average,
                               time.time() - t0))
 
@@ -269,6 +269,8 @@ class MetaMLPDynamicsModel(Serializable):
         """ ------- Tabular Logging ------- """
         if log_tabular:
             logger.logkv('AvgModelEpochTime', np.mean(epoch_times))
+            logger.logkv('Post-Loss', np.mean(post_batch_losses))
+            logger.logkv('Pre-Loss', np.mean(pre_batch_losses))
             logger.logkv('Epochs', epoch)
 
     def predict(self, obs, act):
