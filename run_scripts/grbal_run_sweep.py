@@ -85,13 +85,13 @@ if __name__ == '__main__':
                 'discount': [1.],
 
                 # Policy
-                'n_candidates': [2000],
-                'horizon': [20],
+                'n_candidates': [1000],
+                'horizon': [10],
                 'use_cem': [False],
                 'num_cem_iters': [5],
 
                 # Training
-                'num_rollouts': [2],
+                'num_rollouts': [4],
                 'valid_split_ratio': [0.1],
                 'rolling_average_persitency': [0.99],
                 'initial_random_samples': [True],

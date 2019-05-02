@@ -49,9 +49,7 @@ CMD alias ffmpeg="avconv"
 
 # ========== Setup mujoco ========
 CMD mkdir /root/.mujoco
-RUN wget https://www.roboti.us/download/mjpro150_linux.zip
 RUN wget https://www.roboti.us/download/mjpro131_linux.zip
-RUN unzip mjpro150_linux.zip -d /root/.mujoco
 RUN unzip mjpro131_linux.zip -d /root/.mujoco
 ADD mjkey.txt /root/.mujoco/mjkey.txt
 RUN apt-get install -y libgl1-mesa-dev libgl1-mesa-glx libglew-dev libosmesa6-dev
@@ -66,11 +64,10 @@ CMD mkdir /root/code
 ADD environment.yml /root/code/environment.yml
 RUN conda env create -f /root/code/environment.yml
 
-ENV PYTHONPATH /root/code/meta_mb:$PYTHONPATH
-ENV LD_LIBRARY_PATH /root/.mujoco/mjpro150/bin:$LD_LIBRARY_PATH
-ENV PATH /opt/conda/envs/meta_mb/bin:$PATH
-RUN echo "source activate meta_mb" >> /root/.bashrc
+ENV PYTHONPATH /root/code/learning_to_adapt:$PYTHONPATH
+ENV LD_LIBRARY_PATH /root/.mujoco/mjpro131/bin:$LD_LIBRARY_PATH
+ENV PATH /opt/conda/envs/learning_to_adapt/bin:$PATH
+RUN echo "source activate learning_to_adapt" >> /root/.bashrc
 ENV BASH_ENV /root/.bashrc
 WORKDIR /root/code
 
-RUN python -c 'import mujoco_py'

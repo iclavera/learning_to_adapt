@@ -6,6 +6,6 @@ DOCKER_MOUNT_DIR = '/root/code/data'
 
 DATA_DIR = os.path.join(BASE_DIR, 'data')
 
-DOCKER_IMAGE = 'iclavera/meta-mb'
+DOCKER_IMAGE = 'iclavera/learning_to_adapt'
 
 S3_BUCKET_NAME = 'iclavera-doodad'
