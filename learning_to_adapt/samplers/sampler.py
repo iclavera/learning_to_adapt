@@ -12,13 +12,6 @@ class Sampler(BaseSampler):
     """
     Sampler for Meta-RL
 
-    Args:
-        env (meta_mb.meta_envs.base.MetaEnv) : environment object
-        policy (meta_mb.policies.base.Policy) : policy object
-        batch_size (int) : number of trajectories per task
-        meta_batch_size (int) : number of meta tasks
-        max_path_length (int) : max number of steps per trajectory
-        envs_per_task (int) : number of meta_envs to run vectorized for each task (influences the memory usage)
     """
 
     def __init__(

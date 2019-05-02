@@ -9,12 +9,6 @@ from pyprind import ProgBar
 class BaseSampler(object):
     """
     Sampler interface
-
-    Args:
-        env (gym.Env) : environment object
-        policy (meta_mb.policies.policy) : policy object
-        batch_size (int) : number of trajectories per task
-        max_path_length (int) : max number of steps per trajectory
     """
 
     def __init__(self, env, policy, num_rollouts, max_path_length):

@@ -9,12 +9,6 @@ class IterativeEnvExecutor(object):
     Wraps multiple environments of the same kind and provides functionality to reset / step the environments
     in a vectorized manner. Internally, the environments are executed iteratively.
 
-    Args:
-        env (meta_mb.meta_envs.base.MetaEnv): meta environment object
-        meta_batch_size (int): number of meta tasks
-        envs_per_task (int): number of environments per meta task
-        max_path_length (int): maximum length of sampled environment paths - if the max_path_length is reached,
-                               the respective environment is reset
     """
 
     def __init__(self, env, num_rollouts, max_path_length):
@@ -81,12 +75,6 @@ class ParallelEnvExecutor(object):
     in a vectorized manner. Thereby the environments are distributed among meta_batch_size processes and
     executed in parallel.
 
-    Args:
-        env (meta_mb.meta_envs.base.MetaEnv): meta environment object
-        meta_batch_size (int): number of meta tasks
-        envs_per_task (int): number of environments per meta task
-        max_path_length (int): maximum length of sampled environment paths - if the max_path_length is reached,
-                             the respective environment is reset
     """
 
     def __init__(self, env, n_parallel, num_rollouts, max_path_length):

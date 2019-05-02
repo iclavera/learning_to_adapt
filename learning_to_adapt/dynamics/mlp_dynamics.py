@@ -90,17 +90,7 @@ class MLPDynamicsModel(Serializable):
 
     def fit(self, obs, act, obs_next, epochs=1000, compute_normalization=True,
             valid_split_ratio=None, rolling_average_persitency=None, verbose=False, log_tabular=False):
-        """
-        Fits the NN dynamics model
-        :param obs: observations - numpy array of shape (n_samples, ndim_obs)
-        :param act: actions - numpy array of shape (n_samples, ndim_act)
-        :param obs_next: observations after taking action - numpy array of shape (n_samples, ndim_obs)
-        :param epochs: number of training epochs
-        :param compute_normalization: boolean indicating whether normalization shall be (re-)computed given the data
-        :param valid_split_ratio: relative size of validation split (float between 0.0 and 1.0)
-        :param (boolean) whether to log training stats in tabular format
-        :param verbose: logging verbosity
-        """
+
 
         assert obs.ndim == 2 and obs.shape[1] == self.obs_space_dims
         assert obs_next.ndim == 2 and obs_next.shape[1] == self.obs_space_dims
@@ -212,18 +202,6 @@ class MLPDynamicsModel(Serializable):
             logger.logkv('Epochs', epoch)
 
     def predict(self, obs, act):
-        """
-        Predict the batch of next observations given the batch of current observations and actions
-        :param obs: observations - numpy array of shape (n_samples, ndim_obs)
-        :param act: actions - numpy array of shape (n_samples, ndim_act)
-        :param pred_type:  prediction type
-                   - rand: choose one of the models randomly
-                   - mean: mean prediction of all models
-                   - all: returns the prediction of all the models
-        :return: pred_obs_next: predicted batch of next observations -
-                                shape:  (n_samples, ndim_obs) - in case of 'rand' and 'mean' mode
-                                        (n_samples, ndim_obs, n_models) - in case of 'all' mode
-        """
         assert obs.shape[0] == act.shape[0]
         assert obs.ndim == 2 and obs.shape[1] == self.obs_space_dims
         assert act.ndim == 2 and act.shape[1] == self.action_space_dims
@@ -243,15 +221,7 @@ class MLPDynamicsModel(Serializable):
 
         return pred_obs
 
-    def reinit_model(self):
-        sess = tf.get_default_session()
-        if '_reinit_model_op' not in dir(self):
-            self._reinit_model_op = [tf.variables_initializer(tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES,
-                                    scope=self.name+'/model_{}'.format(i))) for i in range(self.num_models)]
-        sess.run(self._reinit_model_op)
-
     def _data_input_fn(self, obs, act, delta, batch_size=500, buffer_size=100000):
-        """ Takes in train data an creates an a symbolic nex_batch operator as well as an iterator object """
 
         assert obs.ndim == act.ndim == delta.ndim == 2, "inputs must have 2 dims"
         assert obs.shape[0] == act.shape[0] == delta.shape[0], "inputs must have same length along axis 0"
@@ -281,14 +251,6 @@ class MLPDynamicsModel(Serializable):
             return obs_normalized, actions_normalized
 
     def compute_normalization(self, obs, act, obs_next):
-        """
-        Computes the mean and std of the data and saves it in a instance variable
-        -> the computed values are used to normalize the data at train and test time
-        :param obs: observations - numpy array of shape (n_samples, ndim_obs)
-        :param act: actions - numpy array of shape (n_samples, ndim_act)
-        :param obs_next: observations after takeing action - numpy array of shape (n_samples, ndim_obs)
-        """
-
         assert obs.shape[0] == obs_next.shape[0] == act.shape[0]
         delta = obs_next - obs
         assert delta.ndim == 2 and delta.shape[0] == obs_next.shape[0]
