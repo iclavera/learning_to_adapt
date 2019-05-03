@@ -8,7 +8,7 @@ The code is written in Python 3 and builds on Tensorflow. The environments requi
 If not installed yet, [set up](https://docs.docker.com/install/) docker on your machine.
 Pull our docker container iclavera/learning_to_adapt from docker-hub:
 
-docker pull iclavera/learning_to_adapt
+```docker pull iclavera/learning_to_adapt ```
 All the necessary dependencies are already installed inside the docker container.
 
 ### B. Anaconda
