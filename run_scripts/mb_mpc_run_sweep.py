@@ -4,7 +4,6 @@ from learning_to_adapt.policies.mpc_controller import MPCController
 from learning_to_adapt.samplers.sampler import Sampler
 from learning_to_adapt.logger import logger
 from learning_to_adapt.envs.normalized_env import normalize
-from experiment_utils.run_sweep import run_sweep
 from learning_to_adapt.utils.utils import ClassEncoder
 from learning_to_adapt.samplers.model_sample_processor import ModelSampleProcessor
 from learning_to_adapt.envs import *
@@ -12,8 +11,6 @@ import json
 import os
 
 EXP_NAME = 'learning-to-adapt'
-
-INSTANCE_TYPE = 'c4.2xlarge'
 
 
 def run_experiment(**config):
@@ -73,37 +70,36 @@ if __name__ == '__main__':
 
     config = {
             # Environment
-            'env': [HalfCheetahEnv, AntEnv, HalfCheetahHFieldEnv, HalfCheetahBlocksEnv, Arm7DofEnv],
-            'task': [None],
+            'env': HalfCheetahEnv,
+            'task': None,
 
             # Policy
-            'n_candidates': [2000],
-            'horizon': [20],
-            'use_cem': [False],
-            'num_cem_iters': [5],
-            'discount': [1.],
+            'n_candidates': 2000,
+            'horizon': 20,
+            'use_cem': False,
+            'num_cem_iters': 5,
+            'discount': 1.,
 
             # Sampling
-            'max_path_length': [100],
-            'num_rollouts': [10],
-            'initial_random_samples': [True],
+            'max_path_length': 100,
+            'num_rollouts': 10,
+            'initial_random_samples': True,
 
             # Training
-            'n_itr': [50],
-            'learning_rate': [1e-3],
-            'batch_size': [128],
-            'dynamic_model_epochs': [100],
-            'valid_split_ratio': [0.1],
-            'rolling_average_persitency': [0.99],
+            'n_itr': 50,
+            'learning_rate': 1e-3,
+            'batch_size': 128,
+            'dynamic_model_epochs': 100,
+            'valid_split_ratio': 0.1,
+            'rolling_average_persitency': 0.99,
 
             # Dynamics Model
-            'hidden_sizes': [(512, 512)],
-            'hidden_nonlinearity': ['relu'],
+            'hidden_sizes': (512, 512),
+            'hidden_nonlinearity': 'relu',
 
 
             #  Other
-            'n_parallel': [2],
-            'seed': [1, 2],
+            'n_parallel': 2,
             }
 
-    run_sweep(run_experiment, config, EXP_NAME, INSTANCE_TYPE)
+    run_experiment(config)

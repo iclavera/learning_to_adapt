@@ -7,12 +7,10 @@ from learning_to_adapt.envs.normalized_env import normalize
 from learning_to_adapt.utils.utils import ClassEncoder
 from learning_to_adapt.samplers.model_sample_processor import ModelSampleProcessor
 from learning_to_adapt.envs import *
-from experiment_utils.run_sweep import run_sweep
 import json
 import os
 
 EXP_NAME = 'learning-to-adapt'
-INSTANCE_TYPE = 'c4.2xlarge'
 
 
 def run_experiment(**config):
@@ -74,40 +72,38 @@ if __name__ == '__main__':
     # -------------------- Define Variants -----------------------------------
 
     config = {
-                'seed': [5],
-
                 # Environment
-                'env': [HalfCheetahEnv],
-                'max_path_length': [1000],
-                'task': [None],
-                'normalize': [True],
-                 'n_itr': [50],
-                'discount': [1.],
+                'env': HalfCheetahEnv,
+                'max_path_length': 1000,
+                'task': None,
+                'normalize': True,
+                 'n_itr': 50,
+                'discount': 1.,
 
                 # Policy
-                'n_candidates': [1000],
-                'horizon': [10],
-                'use_cem': [False],
-                'num_cem_iters': [5],
+                'n_candidates': 1000,
+                'horizon': 10,
+                'use_cem': False,
+                'num_cem_iters': 5,
 
                 # Training
-                'num_rollouts': [4],
-                'valid_split_ratio': [0.1],
-                'rolling_average_persitency': [0.99],
-                'initial_random_samples': [True],
+                'num_rollouts': 4,
+                'valid_split_ratio': 0.1,
+                'rolling_average_persitency': 0.99,
+                'initial_random_samples': True,
 
                 # Dynamics Model
-                'meta_batch_size': [20],
-                'hidden_nonlinearity_model': ['relu'],
-                'learning_rate': [1e-3],
-                'inner_learning_rate': [0.01],
-                'hidden_sizes_model': [(512, 512)],
-                'dynamic_model_epochs': [100],
-                'adapt_batch_size': [16],
+                'meta_batch_size': 20,
+                'hidden_nonlinearity_model': 'relu',
+                'learning_rate': 1e-3,
+                'inner_learning_rate': 0.01,
+                'hidden_sizes_model': (512, 512),
+                'dynamic_model_epochs': 100,
+                'adapt_batch_size': 16,
 
                 #  Other
-                'n_parallel': [2],
+                'n_parallel': 2,
 
     }
 
-    run_sweep(run_experiment, config, EXP_NAME, INSTANCE_TYPE)
+    run_experiment(config)
