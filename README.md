@@ -24,5 +24,27 @@ If not done yet, install [anaconda](https://www.anaconda.com/) by following the 
 For running the environments, the Mujoco physics engine version 131 is needed.
 For setting up [Mujoco](http://www.mujoco.org/) and [mujoco-py](https://github.com/openai/mujoco-py)
 
+
+## Usage
+The run scripts are located in the folder ``` run_scripts```.
+In order to run experiments with GrBAL, run the following command:
+
+```python run_scripts/run_grbal.py ```
+
+If instead, you want to run ReBAL:
+
+``` python run_scripts/run_rebal.py ```
+
+We have also implement a non-adaptive model-based method that uses random shooting or cross-entropy for planning. You
+can run this baseline by executing the command:
+
+``` python run_scripts/run_mb_mpc.py ```
+
+
+When running experiments, the data will be stored in ``` data/$EXPERIMENT_NAME ```. You can visualize the learning process
+by using the visualization kit:
+
+``` python viskit/frontend.py data/$EXPERIMENT_NAME ```
+
 ## Acknowledgements
 This repository is partly based on [Duan et al., 2016](https://arxiv.org/abs/1611.02779).
