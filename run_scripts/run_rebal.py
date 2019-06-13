@@ -11,10 +11,10 @@ from learning_to_adapt.envs import *
 import json
 import os
 
-EXP_NAME = 'learning-to-adapt'
+EXP_NAME = 'rebal'
 
 
-def run_experiment(**config):
+def run_experiment(config):
     exp_dir = os.getcwd() + '/data/' + EXP_NAME + '/' + config.get('exp_name', '')
     logger.configure(dir=exp_dir, format_strs=['stdout', 'log', 'csv'], snapshot_mode='last')
     json.dump(config, open(exp_dir + '/params.json', 'w'), indent=2, sort_keys=True, cls=ClassEncoder)
