@@ -57,7 +57,7 @@ def run_experiment(config):
         policy=policy,
         dynamics_model=dynamics_model,
         sampler=sampler,
-        dynamics_sample_processor=sample_processor,
+        sample_processor=sample_processor,
         n_itr=config['n_itr'],
         initial_random_samples=config['initial_random_samples'],
         dynamics_model_max_epochs=config['dynamic_model_epochs'],
