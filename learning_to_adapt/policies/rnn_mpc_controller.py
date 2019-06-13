@@ -187,11 +187,9 @@ class RNNMPCController(Policy, Serializable):
             return _hidden
 
     def __getstate__(self):
-        # state = LayersPowered.__getstate__(self)
         state = dict()
         state['init_args'] = Serializable.__getstate__(self)
         return state
 
     def __setstate__(self, state):
-        # LayersPowered.__setstate__(self, state)
         Serializable.__setstate__(self, state['init_args'])

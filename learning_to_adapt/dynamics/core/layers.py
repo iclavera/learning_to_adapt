@@ -2,6 +2,7 @@ from learning_to_adapt.utils.serializable import Serializable
 from learning_to_adapt.utils.utils import remove_scope_from_name
 from learning_to_adapt.dynamics.core.utils import *
 import tensorflow as tf
+import copy
 from collections import OrderedDict
 
 
@@ -34,8 +35,6 @@ class Layer(Serializable):
                  params=None,
                  **kwargs
                  ):
-
-        Serializable.quick_init(self, locals())
 
         self.input_dim = input_dim
         self.output_dim = output_dim
@@ -102,9 +101,6 @@ class Layer(Serializable):
         tf.get_default_session().run(self._assign_ops, feed_dict=feed_dict)
 
     def __getstate__(self):
-        # TODO: Fix this!
-        # init_args['__kwargs'].pop('input_var')
-        # init_args = Serializable.__getstate__(self)
         state = {
             # 'init_args': Serializable.__getstate__(self),
             'network_params': self.get_param_values()
@@ -195,10 +191,9 @@ class RNN(Layer):
 
     def __init__(self, *args, **kwargs):
         # store the init args for serialization and call the super constructors
-        Serializable.quick_init(self, locals())
-        Layer.__init__(self, *args, **kwargs)
         self._cell_type = kwargs.get('cell_type', 'gru')
         self.state_var = kwargs.get('state_var', None)
+        Layer.__init__(self, *args, **kwargs)
 
         self.build_graph()
 

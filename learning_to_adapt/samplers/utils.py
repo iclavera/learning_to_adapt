@@ -1,26 +1,16 @@
 import numpy as np
-import time
-import moviepy.editor as mpy
 
 
-def rollout(env, agent, max_path_length=np.inf, animated=False, speedup=1, save_video=True,
-            video_filename='sim_out.mp4', ignore_done=False, stochastic=False, num_rollouts=1):
+def rollout(env, policy, max_path_length=np.inf,
+            animated=False, ignore_done=False,
+            num_rollouts=1, adapt_batch_size=None):
     ''' get wrapped env '''
     wrapped_env = env
     while hasattr(wrapped_env, '_wrapped_env'):
         wrapped_env = wrapped_env._wrapped_env
 
-    assert hasattr(wrapped_env, 'dt'), 'environment must have dt attribute that specifies the timestep'
-    timestep = wrapped_env.dt
-    images = []
     paths = []
-    if animated:
-        mode = 'human'
-    else:
-        mode = 'rgb_array'
-
-    render = animated or save_video
-
+    a_bs = adapt_batch_size
     for i in range(num_rollouts):
         observations = []
         actions = []
@@ -29,22 +19,22 @@ def rollout(env, agent, max_path_length=np.inf, animated=False, speedup=1, save_
         env_infos = []
 
         o = env.reset()
-        agent.reset()
+        policy.reset()
         path_length = 0
-        if render:
-            _ = env.render(mode)
-            env.viewer.cam.distance = wrapped_env.model.stat.extent * 0.5
-            env.viewer.cam.trackbodyid = 0
-            env.viewer.cam.type = 1
 
         while path_length < max_path_length:
-            a, agent_info = agent.get_action(o)
-            if not stochastic:
-                a = agent_info['mean']
+            if a_bs is not None and len(observations) > a_bs + 1:
+                adapt_obs = observations[-a_bs - 1:-1]
+                adapt_act = actions[-a_bs - 1:-1]
+                adapt_next_obs = observations[-a_bs:]
+                policy.dynamics_model.switch_to_pre_adapt()
+                policy.dynamics_model.adapt([np.array(adapt_obs)], [np.array(adapt_act)],
+                                            [np.array(adapt_next_obs)])
+            a, agent_info = policy.get_action(o)
             next_o, r, d, env_info = env.step(a)
             observations.append(o)
             rewards.append(r)
-            actions.append(a)
+            actions.append(a[0])
             agent_infos.append(agent_info)
             env_infos.append(env_info)
             path_length += 1
@@ -53,27 +43,14 @@ def rollout(env, agent, max_path_length=np.inf, animated=False, speedup=1, save_
             o = next_o
 
             if animated:
-                env.render(mode)
-                time.sleep(timestep/speedup)
-
-            if save_video:
-                image = env.render(mode)
-                images.append(image)
+                env.render()
 
         paths.append(dict(
-                observations=observations,
-                actons=actions,
-                rewards=rewards,
-                agent_infos=agent_infos,
-                env_infos=env_infos
-            ))
-    if save_video:
-        fps = int(speedup/timestep)
-        clip = mpy.ImageSequenceClip(images, fps=fps)
-        if video_filename[-3:] == 'gif':
-            clip.write_gif(video_filename, fps=fps)
-        else:
-            clip.write_videofile(video_filename, fps=fps)
-        print("Video saved at %s" % video_filename)
+            observations=observations,
+            actons=actions,
+            rewards=rewards,
+            agent_infos=agent_infos,
+            env_infos=env_infos
+        ))
 
     return paths

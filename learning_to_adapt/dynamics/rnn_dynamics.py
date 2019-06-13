@@ -317,7 +317,6 @@ class RNNDynamicsModel(Serializable):
             return obs_normalized, actions_normalized
 
     def __getstate__(self):
-        # state = LayersPowered.__getstate__(self)
         state = dict()
         state['init_args'] = Serializable.__getstate__(self)
         state['normalization'] = self.normalization
@@ -325,7 +324,6 @@ class RNNDynamicsModel(Serializable):
         return state
 
     def __setstate__(self, state):
-        # LayersPowered.__setstate__(self, state)
         Serializable.__setstate__(self, state['init_args'])
         self.normalization = state['normalization']
         for i in range(len(self._networks)):
