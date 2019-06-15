@@ -81,28 +81,28 @@ if __name__ == '__main__':
                 'discount': 1.,
 
                 # Policy
-                'n_candidates': 1000,
+                'n_candidates': 500,
                 'horizon': 10,
                 'use_cem': False,
                 'num_cem_iters': 5,
 
                 # Training
-                'num_rollouts': 4,
+                'num_rollouts': 5,
                 'valid_split_ratio': 0.1,
                 'rolling_average_persitency': 0.99,
                 'initial_random_samples': True,
 
                 # Dynamics Model
-                'meta_batch_size': 20,
+                'meta_batch_size': 10,
                 'hidden_nonlinearity_model': 'relu',
                 'learning_rate': 1e-3,
-                'inner_learning_rate': 0.01,
-                'hidden_sizes_model': (512, 512),
+                'inner_learning_rate': 0.001,
+                'hidden_sizes_model': (512, 512, 512),
                 'dynamic_model_epochs': 100,
                 'adapt_batch_size': 16,
 
                 #  Other
-                'n_parallel': 2,
+                'n_parallel': 5,
 
     }
 

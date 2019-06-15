@@ -74,15 +74,15 @@ if __name__ == '__main__':
             'task': None,
 
             # Policy
-            'n_candidates': 2000,
-            'horizon': 20,
+            'n_candidates': 500,
+            'horizon': 10,
             'use_cem': False,
             'num_cem_iters': 5,
             'discount': 1.,
 
             # Sampling
-            'max_path_length': 100,
-            'num_rollouts': 10,
+            'max_path_length': 1000,
+            'num_rollouts': 5,
             'initial_random_samples': True,
 
             # Training
@@ -99,7 +99,7 @@ if __name__ == '__main__':
             'hidden_sizes': (256,),
 
             #  Other
-            'n_parallel': 2,
+            'n_parallel': 5,
             }
 
     run_experiment(config)
