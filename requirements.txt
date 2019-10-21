@@ -54,5 +54,5 @@ tensorflow-tensorboard==0.4.0
 tqdm==4.25.0
 traitlets==4.3.2
 urllib3>=1.24.2
-Werkzeug==0.14.1
+Werkzeug==0.15.3
 wheel==0.31.1
