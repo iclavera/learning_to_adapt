@@ -15,6 +15,7 @@ class EnvSpec(Serializable):
         Serializable.quick_init(self, locals())
         self._observation_space = observation_space
         self._action_space = action_space
+        self.max_episode_steps = None
 
     @property
     def observation_space(self):

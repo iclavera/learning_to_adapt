@@ -1,8 +1,9 @@
 from .env_spec import EnvSpec
 import collections
+from gym.core import Env
 
 
-class Env(object):
+class Env(Env):
     def step(self, action):
         """
         Run one timestep of the environment's dynamics. When end of episode
@@ -65,6 +66,10 @@ class Env(object):
             observation_space=self.observation_space,
             action_space=self.action_space,
         )
+
+    @spec.setter
+    def spec(self, value):
+        self.EnvSpec = value
 
     @property
     def horizon(self):
