@@ -14,7 +14,7 @@ Flask==1.0.2
 future==0.16.0
 glfw==1.7.0
 gym==0.7.4
-html5lib==0.9999999
+html5lib==0.999999999
 idna==2.7
 imageio==2.4.1
 ipython-genutils==0.2.0
